@@ -7,13 +7,13 @@ import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore
 // --- FIREBASE INITIALIZATION ---
 // Safely handle both the Canvas workspace and local/Vercel environments
 const firebaseConfig = {
-  apiKey: "AIzaSyBnvxcJwhJ1baCMoRfkizrCZB8e8w2u0Tc",
-  authDomain: "ap-poll-system.firebaseapp.com",
-  projectId: "ap-poll-system",
-  storageBucket: "ap-poll-system.firebasestorage.app",
-  messagingSenderId: "140737615449",
-  appId: "1:140737615449:web:fb36a9c19a440b15d24348",
-  measurementId: "G-P15LMDRB7W"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
 

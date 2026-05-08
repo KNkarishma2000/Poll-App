@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import {  CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter, Download, Lock } from 'lucide-react';
+import { User, CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter, Download, Lock } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore';
 
 // --- FIREBASE INITIALIZATION ---
-// Follows strict rules for the environment's built-in cloud storage
-const firebaseConfig = JSON.parse(__firebase_config);
+// Safely handle both the Canvas workspace and local/Vercel environments
+const firebaseConfig = {
+  apiKey: "AIzaSyBnvxcJwhJ1baCMoRfkizrCZB8e8w2u0Tc",
+  authDomain: "ap-poll-system.firebaseapp.com",
+  projectId: "ap-poll-system",
+  storageBucket: "ap-poll-system.firebasestorage.app",
+  messagingSenderId: "140737615449",
+  appId: "1:140737615449:web:fb36a9c19a440b15d24348",
+  measurementId: "G-P15LMDRB7W"
+};
+
+
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
+const appId = "my-app";
 // Authorized Admins
 const ADMIN_EMAILS = ['karthikkotamraju9@gmail.com', 'helotune258@gmail.com'];
 
@@ -44,7 +54,7 @@ const MLA_MAP = {
   "ముమ్మిడివరం": "దాట్ల సుబ్బరాజు", "అమలాపురం": "అయితాబత్తుల ఆనందరావు", "రాజోలు": "దేవ వరప్రసాద్", "గన్నవరం (కోనసీమ)": "గిడ్డి సత్యనారాయణ", "కొత్తపేట": "బండారు ఆనందరావు", "రామచంద్రపురం": "వాసంశెట్టి సుభాష్", "రాజానగరం": "బత్తుల బలరామకృష్ణ", "రాజమండ్రి సిటీ": "ఆదిరెడ్డి శ్రీనివాస్", "రాజమండ్రి రూరల్": "గోరంట్ల బుచ్చయ్య చౌదరి",
   "కొవ్వూరు": "ముప్పిడి వెంకటేశ్వరరావు", "నిడదవోలు": "కందుల దుర్గేష్", "ఆచంట": "పితాని సత్యనారాయణ", "పాలకొల్లు": "నిమ్మల రామానాయుడు", "నరసాపురం": "బొమ్మిడి నాయకర్", "భీమవరం": "పులపర్తి రామాంజనేయులు", "ఉండి": "కనుమూరు రఘురామ కృష్ణరాజు", "తణుకు": "అరిమిల్లి రాధాకృష్ణ", "తాడేపల్లిగూడెం": "బోలిశెట్టి శ్రీనివాస్", "ఉంగుటూరు": "పత్సమట్ల ధర్మరాజు", "దెందులూరు": "చింతమనేని ప్రభాకర్", "ఏలూరు": "బడేటి రాధాకృష్ణయ్య (చంటి)", "గోపాలపురం": "మద్దిపాటి వెంకటరాజు", "పోలవరం": "చిర్రి బాలరాజు", "చింతలపూడి": "సాంగా రోషన్ కుమార్",
   "తిరువూరు": "కొలికపూడి శ్రీనివాసరావు", "నూజివీడు": "కొలుసు పార్థసారథి", "గన్నవరం (కృష్ణా)": "యార్లగడ్డ వెంకట్రావు", "గుడివాడ": "వెనిగండ్ల రాము", "కైకలూరు": "కామినేని శ్రీనివాసరావు", "పెడన": "కాగిత కృష్ణ ప్రసాద్", "మచిలీపట్నం": "కొల్లు రవీంద్ర", "అవనిగడ్డ": "మండలి బుద్ధ ప్రసాద్", "పామర్రు": "వర్ల కుమార్ రాజా", "పెనమలూరు": "బోడె ప్రసాద్", "విజయవాడ పశ్చిమ": "సుజనా చౌదరి", "విజయవాడ సెంట్రల్": "బోండా ఉమామహేశ్వరరావు", "విజయవాడ తూర్పు": "గద్దె రామమోహన్", "మైలవరం": "వసంత కృష్ణ ప్రసాద్", "నందిగామ": "తంగిరాల సౌమ్య", "జగ్గయ్యపేట": "శ్రీరామ్ రాజగోపాల్ (తాతయ్య)",
-  "పెదకూరపాడు": "భాష్యం ప్రవీణ్", "తాడికొండ": "తెనాలి శ్రావణ్ కుమార్", "మంగళగిరి": "నారా లోకేష్", "పొన్నూరు": "ధూళిపాళ్ల నరేంద్ర కుమార్", "వేమూరు": "నక్కా ఆనందబాబు", "రేపల్లె": "అనగాని సత్యప్రసాద్", "తెనాలి": "నాదెండ్ల మనోహర్", "బాపట్ల": "వేగేశన నరేంద్ర వర్మ రాజు", "ప్రత్తిపాడు (గుంటూరు)": "బూర్ల రామాంజనేయులు", "గుంటూరు పశ్చిమ": "గల్లా మాధవి", "గుంటూరు తూర్పు": "మహమ్మద్ నసీర్", "చిలకలూరిపేట": "ప్రత్తిపాటి పుల్లారావు", "నరసరావుపేట": "చదలవాడ అరవింద బాబు", "సత్తెనపల్లి": "కన్నా లక్ష్మీనారాయణ", "వినుకొండ": "జి.వి. ఆంజనేయులు", "గురజాల": "యరపతినేని శ్రీనివాసరావు", "మాచర్ల": "జూలకంటి బ్రహ్మానంద రెడ్డి",
+  "పెదకూరపాడు": "భాష్యం ప్రవీణ్", "తాడికొండ": "తెనాలి శ్రావణ్ కుమార్", "మంగళగిరి": "నారా లోకేష్", "పొన్నూరు": "ధూళిపాళ్ల నరేంద్ర కుమార్", "వేమూరు": "నక్కా ఆనందబాబు", "రేపల్లె": "అనగాని సత్యప్రసాద్", "తెనాలి": "నాదెండ్ల మనోహర్", "బాపట్ల": "వేగేశన నరేంద్ర వర్మ రాజు", "ప్రత్తిపాడు (గుంటూరు)": "బూర్ల రామాంజనేయులు", "గుంటూరు పశ్লগ্ন": "గల్లా మాధవి", "గుంటూరు తూర్పు": "మహమ్మద్ నసీర్", "చిలకలూరిపేట": "ప్రత్తిపాటి పుల్లారావు", "నరసరావుపేట": "చదలవాడ అరవింద బాబు", "సత్తెనపల్లి": "కన్నా లక్ష్మీనారాయణ", "వినుకొండ": "జి.వి. ఆంజనేయులు", "గురజాల": "యరపతినేని శ్రీనివాసరావు", "మాచర్ల": "జూలకంటి బ్రహ్మానంద రెడ్డి",
   "ఎర్రగొండపాలెం": "తాటిపర్తి చంద్రశేఖర్", "దర్శి": "బూచేపల్లి శివప్రసాద్ రెడ్డి", "పర్చూరు": "ఏలూరి సాంబశివరావు", "అద్దంకి": "గొట్టిపాటి రవికుమార్", "చీరాల": "మద్దులూరి మాలకొండయ్య", "సంతనూతలపాడు": "బీ.ఎన్. విజయ్ కుమార్", "ఒంగోలు": "దామచర్ల జనార్దనరావు", "కందుకూరు": "ఇంటూరి నాగేశ్వరరావు", "కొండపి": "డోలా శ్రీ బాల వీరాంజనేయ స్వామి", "మార్కాపురం": "కందుల నారాయణ రెడ్డి", "గిద్దలూరు": "ముత్తుముల అశోక్ రెడ్డి", "కనిగిరి": "ఉగ్ర నరసింహా రెడ్డి",
   "కావలి": "దగతాపాటి కావ్యకృష్ణారెడ్డి", "ఆత్మకూరు": "ఆనం రామనారాయణ రెడ్డి", "కోవూరు": "వేమిరెడ్డి ప్రశాంతి రెడ్డి", "నెల్లూరు సిటీ": "పి. నారాయణ", "నెల్లూరు రూరల్": "కోటంరెడ్డి శ్రీధర్ రెడ్డి", "సర్వేపల్లి": "సోమిరెడ్డి చంద్రమోహన్ రెడ్డి", "గూడూరు": "పాశం సునీల్ కుమార్", "సూళ్లూరుపేట": "నెలవల విజయశ్రీ", "వెంకటగిరి": "కురుగొండ్ల రామకృష్ణ", "ఉదయగిరి": "కాకర్ల సురేష్",
   "బద్వేలు": "దాసరి సుధ", "రాజంపేట": "ఆకేపాటి అమర్‌నాథ్ రెడ్డి", "కడప": "రెడ్డిప్పగారి మాధవి", "కోడూరు": "అరవ శ్రీధర్", "రాయచోటి": "మండిపల్లి రాంప్రసాద్ రెడ్డి", "పులివెందుల": "వై.ఎస్. జగన్ మోహన్ రెడ్డి", "కమలాపురం": "పుత్తా చైతన్య రెడ్డి", "జమ్మలమడుగు": "సి. ఆదినారాయణ రెడ్డి", "ప్రొద్దుటూరు": "నంద్యాల వరదరాజుల రెడ్డి", "మైదుకూరు": "పుట్టా సుధాకర్ యాదవ్",
@@ -62,23 +72,20 @@ export default function App() {
   
   // Admin & Dashboard State
   const [adminEmailInput, setAdminEmailInput] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [allVotes, setAllVotes] = useState([]);
   const [filterConstituency, setFilterConstituency] = useState('');
 
   // Firebase Authentication setup
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Auth error:", err);
-      }
-    };
-    initAuth();
+ useEffect(() => {
+     const initAuth = async () => {
+       try {
+         await signInAnonymously(auth);
+       } catch (err) {
+         console.error("Auth error:", err);
+       }
+     };
+     initAuth();
     
     const unsubscribe = onAuthStateChanged(auth, setUser);
     return () => unsubscribe();
@@ -169,6 +176,7 @@ export default function App() {
     setError('');
     
     if (ADMIN_EMAILS.includes(adminEmailInput.trim().toLowerCase())) {
+      setIsAdmin(true);
       setStep(4);
       setFilterConstituency('');
     } else {
@@ -288,6 +296,17 @@ export default function App() {
               {user ? "పోల్ ప్రారంభించండి" : "కనెక్ట్ అవుతోంది..."}
             </button>
           </form>
+
+          {/* View Results Button for Normal Users */}
+          <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+            <button 
+              onClick={() => { setStep(4); setFilterConstituency(''); }}
+              className="inline-flex items-center text-blue-700 hover:text-blue-900 font-bold"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              లైవ్ ఫలితాలు (Live Results)
+            </button>
+          </div>
         </div>
       )}
 
@@ -364,6 +383,15 @@ export default function App() {
           >
             మరొక ఓటు వేయండి
           </button>
+          
+          <div className="mt-4 pt-4 border-t">
+            <button 
+              onClick={() => { setStep(4); setFilterConstituency(''); }}
+              className="text-blue-600 font-semibold hover:underline inline-flex items-center"
+            >
+              <BarChart3 className="w-5 h-5 mr-1" /> ఫలితాలు చూడండి
+            </button>
+          </div>
         </div>
       )}
 
@@ -420,20 +448,29 @@ export default function App() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 border-b pb-4 gap-4">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center">
               <BarChart3 className="w-6 h-6 mr-3 text-red-700" />
-              పోల్ ఫలితాలు - అడ్మిన్ ప్యానెల్
+              పోల్ ఫలితాలు {isAdmin && "- అడ్మిన్ ప్యానెల్"}
             </h2>
             <div className="flex items-center gap-4">
+              {isAdmin && (
+                <button 
+                  onClick={exportToCSV}
+                  className="flex items-center text-green-700 hover:text-green-900 bg-green-50 px-4 py-2 rounded-lg font-semibold border border-green-200"
+                >
+                  <Download className="w-5 h-5 mr-2" /> Excel కు డౌన్‌లోడ్ చేయండి
+                </button>
+              )}
               <button 
-                onClick={exportToCSV}
-                className="flex items-center text-green-700 hover:text-green-900 bg-green-50 px-4 py-2 rounded-lg font-semibold border border-green-200"
-              >
-                <Download className="w-5 h-5 mr-2" /> Excel కు డౌన్‌లోడ్ చేయండి
-              </button>
-              <button 
-                onClick={() => { setStep(1); setAdminEmailInput(''); generateCaptcha(); }}
+                onClick={() => { 
+                  setStep(1); 
+                  if (isAdmin) {
+                    setIsAdmin(false);
+                    setAdminEmailInput('');
+                  }
+                  generateCaptcha(); 
+                }}
                 className="flex items-center text-gray-600 hover:text-red-700 font-semibold"
               >
-                <ArrowLeft className="w-5 h-5 mr-1" /> వెనుకకు (Logout)
+                <ArrowLeft className="w-5 h-5 mr-1" /> వెనుకకు ({isAdmin ? 'Logout' : 'Back'})
               </button>
             </div>
           </div>

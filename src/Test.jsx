@@ -227,7 +227,8 @@ export default function App() {
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
             title="Admin Login"
           >
-            <Lock className="w-5 h-5" />
+            {/* <Lock className="w-5 h-5" /> */}
+            <Lock size={20} strokeWidth={2.5} />
           </button>
 
           <h2 className="text-2xl font-bold text-center text-red-700 mb-6 border-b pb-4 mt-2">

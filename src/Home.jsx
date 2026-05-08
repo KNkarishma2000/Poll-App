@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter } from 'lucide-react';
+import {  CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter } from 'lucide-react';
 
 // Complete list of 175 AP Constituencies in Telugu
 const AP_CONSTITUENCIES = [

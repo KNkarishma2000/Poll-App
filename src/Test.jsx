@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter, Download, Lock } from 'lucide-react';
+import {  CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter, Download, Lock } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInAnonymously,  onAuthStateChanged } from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 

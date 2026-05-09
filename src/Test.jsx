@@ -634,52 +634,59 @@ const handleStartPoll = async (e) => {
           })()}
 
           {/* Detailed Data Table */}
-          <div className="overflow-y-auto flex-1 border rounded-lg">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead className="bg-gray-100 sticky top-0 shadow-sm z-10">
-                <tr>
-                  <th className="p-3 border-b font-semibold text-gray-700">తేదీ & సమయం</th>
-                  <th className="p-3 border-b font-semibold text-gray-700">పేరు (Name)</th>
-                  <th className="p-3 border-b font-semibold text-gray-700">ఫోన్ నంబర్</th>
-                  <th className="p-3 border-b font-semibold text-gray-700">నియోజకవర్గం</th>
-                  <th className="p-3 border-b font-semibold text-gray-700">ఎమ్మెల్యే (MLA)</th>
-                  <th className="p-3 border-b font-semibold text-gray-700">ఓటు (Vote)</th>
-                  <th className="p-3 border-b font-semibold text-gray-700">వ్యాఖ్య (Comment)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredVotes.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="p-6 text-center text-gray-500">
-                      {filterConstituency 
-                        ? `${filterConstituency} నియోజకవర్గానికి ఇంకా ఓట్లు లేవు.` 
-                        : "ఇప్పటివరకు ఎవరూ ఓటు వేయలేదు. (No votes yet)"}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredVotes.map((vote, idx) => {
-                    const optionLabels = {
-                      1: <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">బాగుంది</span>,
-                      2: <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">బాగోలేదు</span>,
-                      3: <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">పర్వాలేదు</span>,
-                      4: <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">ఏమీ చెప్పలేం</span>
-                    };
-                    return (
-                      <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                        <td className="p-3 border-b text-sm text-gray-600 whitespace-nowrap">{vote.timestamp}</td>
-                        <td className="p-3 border-b font-medium">{vote.name}</td>
-                        <td className="p-3 border-b text-gray-600 tracking-wider whitespace-nowrap">{vote.phone}</td>
-                        <td className="p-3 border-b text-blue-700 font-medium whitespace-nowrap">{vote.constituency}</td>
-                        <td className="p-3 border-b text-gray-800 text-sm whitespace-nowrap">{vote.mlaName}</td>
-                        <td className="p-3 border-b">{optionLabels[vote.optionId]}</td>
-                        <td className="p-3 border-b text-sm text-gray-700 max-w-xs truncate" title={vote.comment}>{vote.comment || '-'}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+         {/* Detailed Data Table - ONLY FOR ADMIN */}
+{isAdmin && (
+  <div className="overflow-y-auto flex-1 border rounded-lg">
+    <table className="w-full text-left border-collapse min-w-[800px]">
+      <thead className="bg-gray-100 sticky top-0 shadow-sm z-10">
+        <tr>
+          <th className="p-3 border-b font-semibold text-gray-700">తేదీ & సమయం</th>
+          <th className="p-3 border-b font-semibold text-gray-700">పేరు (Name)</th>
+          <th className="p-3 border-b font-semibold text-gray-700">ఫోన్ నంబర్</th>
+          <th className="p-3 border-b font-semibold text-gray-700">నియోజకవర్గం</th>
+          <th className="p-3 border-b font-semibold text-gray-700">ఎమ్మెల్యే (MLA)</th>
+          <th className="p-3 border-b font-semibold text-gray-700">ఓటు (Vote)</th>
+          <th className="p-3 border-b font-semibold text-gray-700">వ్యాఖ్య (Comment)</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {filteredVotes.length === 0 ? (
+          <tr>
+            <td colSpan="7" className="p-6 text-center text-gray-500">
+              {filterConstituency
+                ? `${filterConstituency} నియోజకవర్గానికి ఇంకా ఓట్లు లేవు.`
+                : "ఇప్పటివరకు ఎవరూ ఓటు వేయలేదు. (No votes yet)"}
+            </td>
+          </tr>
+        ) : (
+          filteredVotes.map((vote, idx) => {
+            const optionLabels = {
+              1: <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">బాగుంది</span>,
+              2: <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">బాగోలేదు</span>,
+              3: <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">పర్వాలేదు</span>,
+              4: <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">ఏమీ చెప్పలేం</span>
+            };
+
+            return (
+              <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                <td className="p-3 border-b text-sm text-gray-600 whitespace-nowrap">{vote.timestamp}</td>
+                <td className="p-3 border-b font-medium">{vote.name}</td>
+                <td className="p-3 border-b text-gray-600 tracking-wider whitespace-nowrap">{vote.phone}</td>
+                <td className="p-3 border-b text-blue-700 font-medium whitespace-nowrap">{vote.constituency}</td>
+                <td className="p-3 border-b text-gray-800 text-sm whitespace-nowrap">{vote.mlaName}</td>
+                <td className="p-3 border-b">{optionLabels[vote.optionId]}</td>
+                <td className="p-3 border-b text-sm text-gray-700 max-w-xs truncate">
+                  {vote.comment || '-'}
+                </td>
+              </tr>
+            );
+          })
+        )}
+      </tbody>
+    </table>
+  </div>
+)}
         </div>
       )}
 

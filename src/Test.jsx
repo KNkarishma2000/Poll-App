@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import {  CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter, Download, Lock } from 'lucide-react';
+import { User, CheckCircle, AlertCircle, BarChart3, ArrowLeft, Filter, Download, Lock } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously,  onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  onSnapshot,
+  query,
+  where,
+  getDocs
+} from 'firebase/firestore';
 
 // --- FIREBASE INITIALIZATION ---
 // Safely handle both the Canvas workspace and local/Vercel environments
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyBnvxcJwhJ1baCMoRfkizrCZB8e8w2u0Tc",
+  authDomain: "ap-poll-system.firebaseapp.com",
+  projectId: "ap-poll-system",
+  storageBucket: "ap-poll-system.firebasestorage.app",
+  messagingSenderId: "140737615449",
+  appId: "1:140737615449:web:fb36a9c19a440b15d24348",
+  measurementId: "G-P15LMDRB7W"
 };
 
 
@@ -126,31 +134,90 @@ export default function App() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleStartPoll = (e) => {
-    e.preventDefault();
-    setError('');
+const handleStartPoll = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    if (!formData.name.trim()) return setError('దయచేసి మీ పేరు నమోదు చేయండి.');
-    if (!/^[0-9]{10}$/.test(formData.phone)) return setError('దయచేసి సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.');
-    if (!formData.constituency) return setError('దయచేసి మీ నియోజకవర్గం ఎంచుకోండి.');
-    if (parseInt(captcha.input) !== (captcha.n1 + captcha.n2)) {
-      setError('క్యాప్చా తప్పు. దయచేసి మళ్లీ ప్రయత్నించండి.');
-      generateCaptcha();
-      setCaptcha(prev => ({ ...prev, input: '' }));
-      return;
+  if (!formData.name.trim()) {
+    return setError('దయచేసి మీ పేరు నమోదు చేయండి.');
+  }
+
+  if (!/^[0-9]{10}$/.test(formData.phone)) {
+    return setError('దయచేసి సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.');
+  }
+
+  if (!formData.constituency) {
+    return setError('దయచేసి మీ నియోజకవర్గం ఎంచుకోండి.');
+  }
+
+  if (parseInt(captcha.input) !== (captcha.n1 + captcha.n2)) {
+    setError('క్యాప్చా తప్పు. దయచేసి మళ్లీ ప్రయత్నించండి.');
+
+    generateCaptcha();
+
+    setCaptcha(prev => ({
+      ...prev,
+      input: ''
+    }));
+
+    return;
+  }
+
+  try {
+    // Check duplicate phone number BEFORE entering poll
+    const votesRef = collection(
+      db,
+      'artifacts',
+      appId,
+      'public',
+      'data',
+      'ap_poll_results_2024'
+    );
+
+    const q = query(votesRef, where("phone", "==", formData.phone));
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      return setError(
+        'ఈ మొబైల్ నంబర్‌తో ఇప్పటికే ఓటు నమోదు చేయబడింది.'
+      );
     }
-    
+
+    // Move to poll screen
     setStep(2);
-  };
+
+  } catch (err) {
+    console.error(err);
+
+    setError(
+      'డేటా చెక్ చేయడంలో లోపం ఏర్పడింది. దయచేసి మళ్లీ ప్రయత్నించండి.'
+    );
+  }
+};
 
   const currentMLA = MLA_MAP[formData.constituency] || `${formData.constituency} ఎమ్మెల్యే`;
 
-  const handleVote = async (optionIndex) => {
-    if (!user) {
-      setError('సర్వర్ కు కనెక్ట్ కాలేదు. దయచేసి పేజీని రీఫ్రెష్ చేయండి.');
-      return;
-    }
+ const handleVote = async (optionIndex) => {
+  if (!user) {
+    setError('సర్వర్ కు కనెక్ట్ కాలేదు. దయచేసి పేజీని రీఫ్రెష్ చేయండి.');
+    return;
+  }
 
+  try {
+    // Reference to collection
+    const votesRef = collection(
+      db,
+      'artifacts',
+      appId,
+      'public',
+      'data',
+      'ap_poll_results_2024'
+    );
+
+   
+
+    // Create vote record
     const voteRecord = {
       name: formData.name,
       phone: formData.phone,
@@ -162,14 +229,16 @@ export default function App() {
       timestampMs: Date.now()
     };
 
-    try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ap_poll_results_2024'), voteRecord);
-      setStep(3);
-    } catch (err) {
-      console.error("Error adding document: ", err);
-      setError('ఓటు నమోదు చేయడంలో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.');
-    }
-  };
+    // Save vote
+    await addDoc(votesRef, voteRecord);
+
+    setStep(3);
+
+  } catch (err) {
+    console.error("Error adding document: ", err);
+    setError('ఓటు నమోదు చేయడంలో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.');
+  }
+};
 
   const handleAdminVerify = (e) => {
     e.preventDefault();
@@ -227,8 +296,7 @@ export default function App() {
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
             title="Admin Login"
           >
-            {/* <Lock className="w-5 h-5" /> */}
-            <Lock size={20} strokeWidth={2.5} />
+            <Lock className="w-5 h-5" />
           </button>
 
           <h2 className="text-2xl font-bold text-center text-red-700 mb-6 border-b pb-4 mt-2">

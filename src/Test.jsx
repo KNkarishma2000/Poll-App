@@ -31,7 +31,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = "my-app";
 // Authorized Admins
-const ADMIN_EMAILS = ['karthikkotamraju9@gmail.com', 'helotune258@gmail.com'];
+// Admin Emails from ENV
+const ADMIN_EMAILS = process.env.REACT_APP_ADMIN_EMAILS
+  ? process.env.REACT_APP_ADMIN_EMAILS
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+  : [];
 
 // Complete list of 175 AP Constituencies in Telugu
 const AP_CONSTITUENCIES = [
@@ -240,18 +245,37 @@ const handleStartPoll = async (e) => {
   }
 };
 
-  const handleAdminVerify = (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (ADMIN_EMAILS.includes(adminEmailInput.trim().toLowerCase())) {
-      setIsAdmin(true);
-      setStep(4);
-      setFilterConstituency('');
-    } else {
-      setError('మీకు యాక్సెస్ లేదు. దయచేసి సరైన అడ్మిన్ ఈమెయిల్ నమోదు చేయండి.');
-    }
-  };
+ const handleAdminVerify = (e) => {
+  e.preventDefault();
+
+  // Clear previous error
+  setError('');
+
+  // User entered email
+  const enteredEmail = adminEmailInput.trim().toLowerCase();
+
+  // Empty validation
+  if (!enteredEmail) {
+    setError('దయచేసి అడ్మిన్ ఈమెయిల్ నమోదు చేయండి.');
+    return;
+  }
+
+  // Check if env emails exist
+  if (ADMIN_EMAILS.length === 0) {
+    setError('Admin emails configured కాలేదు.');
+    return;
+  }
+
+  // Verify admin email
+  if (ADMIN_EMAILS.includes(enteredEmail)) {
+    setIsAdmin(true);
+    setStep(4);
+    setFilterConstituency('');
+    setAdminEmailInput('');
+  } else {
+    setError('మీకు యాక్సెస్ లేదు. దయచేసి సరైన అడ్మిన్ ఈమెయిల్ నమోదు చేయండి.');
+  }
+};
 
   const exportToCSV = () => {
     const headers = ['తేదీ & సమయం', 'పేరు (Name)', 'ఫోన్ నంబర్', 'నియోజకవర్గం', 'ఎమ్మెల్యే (MLA)', 'ఓటు (Vote)', 'వ్యాఖ్య (Comment)'];
